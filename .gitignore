@@ -50,3 +50,6 @@ test/testdata/*.txt
 
 # LLVM Tools
 compile_commands.json
+
+# Performance data
+perf.data*
