@@ -294,7 +294,7 @@ seastar::future<> coordinator::sort_all_interruptible() {
     co_await seastar::parallel_for_each(std::views::iota(0, static_cast<int>(shard_count)), [this] (int shard_id) {
         if (!parts_per_shard[shard_id].empty()) {
             return seastar::smp::submit_to(shard_id, [this, shard_id] {
-                return seastar::do_with(0, [this, shard_id] (int part_idx) -> seastar::future<> {
+                return seastar::do_with(0, [this, shard_id] (uint64_t part_idx) -> seastar::future<> {
                     auto part_count_per_shard = parts_per_shard[shard_id].size();
                     co_await seastar::do_until(
                         [this, part_count_per_shard, &part_idx] { return part_idx >= part_count_per_shard || _interrupted.load(); }, 
@@ -423,7 +423,7 @@ seastar::future<> coordinator::merge_all_interruptible() {
             auto part_count_per_shard = parts_per_shard[shard_id].size();
             if (part_count_per_shard > 1) {
                 return seastar::smp::submit_to(shard_id, [this, shard_id, part_count_per_shard] {
-                    return seastar::do_with(0, [this, shard_id, part_count_per_shard] (int part_idx) -> seastar::future<> {
+                    return seastar::do_with(0, [this, shard_id, part_count_per_shard] (uint64_t part_idx) -> seastar::future<> {
                         auto part_idx_limit = part_count_per_shard - 1;
                         co_await seastar::do_until(
                             [this, &part_idx, part_idx_limit] { return part_idx >= part_idx_limit || _interrupted.load(); }, 
@@ -480,7 +480,7 @@ int main(int argc, char** argv) {
             
             // Handle SIGINT/Ctrl+C
             seastar::handle_signal(SIGINT, [&c] {
-                ssort::ssort_logger.info("{}", "Interrupted, shutting down...\n");
+                ssort::ssort_logger.info("Interrupted, shutting down...\n");
                 c.interrupt();
             }, true);
 
